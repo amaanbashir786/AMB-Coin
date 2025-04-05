@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>AMB Coin Mining App</title>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+        import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics.js";
+
+        // Your Firebase configuration object
+        const firebaseConfig = {
+            apiKey: "AIzaSyDT056VbmdOlu6x3IyrPwLSBcTkTU4dV_I",
+            authDomain: "amb-coin.firebaseapp.com",
+            projectId: "amb-coin",
+            storageBucket: "amb-coin.firebasestorage.app",
+            messagingSenderId: "885827312284",
+            appId: "1:885827312284:web:fd0bbac698d8595275eb59",
+            measurementId: "G-NWTSZ0P411"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+        const analytics = getAnalytics(app);
+
+        // DOM Elements
+        const googleSigninBtn = document.getElementById('google-signin');
+        const signupBtn = document.getElementById('signup-btn');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const appContainer = document.getElementById('app-container');
+        const authSection = document.getElementById('auth-section');
+        const userSection = document.getElementById('user-section');
+        const startMiningBtn = document.getElementById('startMiningBtn');
+        const addReferralBtn = document.getElementById('addReferralBtn');
+
+        // User profile variables
+        let user = null;
+
+        // Google Sign-in
+        googleSigninBtn.addEventListener('click', () => {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    user = result.user;
+                    loadUserProfile();
+                    authSection.style.display = 'none';
+                    userSection.style.display = 'block';
+                })
+                .catch((error) => {
+                    alert(error.message);
+                });
+        });
+
+        // Manual Signup/Login
+        signupBtn.addEventListener('click', () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    user = userCredential.user;
+                    saveUserProfile();
+                    authSection.style.display = 'none';
+                    userSection.style.display = 'block';
+                })
+                .catch((error) => {
+                    signInWithEmailAndPassword(auth, email, password)
+                        .then((userCredential) => {
+                            user = userCredential.user;
+                            loadUserProfile();
+                            authSection.style.display = 'none';
+                            userSection.style.display = 'block';
+                        })
+                        .catch((error) => {
+                            alert(error.message);
+                        });
+                });
+        });
+
+        // Save user profile in Firebase
+        function saveUserProfile() {
+            const userProfile = {
+                email: user.email,
+                fullName: user.displayName || '',
+                phoneNumber: user.phoneNumber || '',
+                region: '',
+                referralCode: generateReferralCode()
+            };
+            set(ref(database, 'users/' + user.uid), userProfile);
+        }
+
+        // Load user profile
+        function loadUserProfile() {
+            const userRef = ref(database, 'users/' + user.uid);
+            get(userRef)
+                .then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const userData = snapshot.val();
+                        console.log(userData);
+                        // You can display this user data or manipulate it here
+                    } else {
+                        console.log("No data available");
+                    }
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+        }
+
+        // Generate a simple referral code
+        function generateReferralCode() {
+            return Math.random().toString(36).substring(2, 15);
+        }
+
+        // Start mining process
+        startMiningBtn.addEventListener('click', () => {
+            console.log('Mining started!');
+            // Start the mining simulation (this is where you can simulate mining)
+        });
+
+        addReferralBtn.addEventListener('click', () => {
+            console.log('Referral added!');
+            // Simulate referral logic (you can extend this to handle referral bonuses)
+        });
+    </script>
+
+    <style>
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .app-container {
+            background-color: #fff;
+            border-radius: 15px;
+            width: 350px;
+            padding: 30px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #2d72d9;
+            font-size: 2em;
+        }
+
+        p {
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        .mining-info {
+            margin-bottom: 30px;
+        }
+
+        .status-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        button {
+            background-color: #2d72d9;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #1a56b8;
+        }
+
+        .user-info {
+            text-align: center;
+            margin-top: 20px;
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #888;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .form-container input, .form-container button {
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 5px;
+            margin: 5px 0;
+        }
+
+        .google-btn {
+            background-color: #db4437;
+            color: white;
+            font-weight: bold;
+        }
+
+        .google-btn:hover {
+            background-color: #c1351d;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container" id="app-container">
+        <header>
+            <h1>AMB Coin Mining</h1>
+            <p>Simulate your mining earnings!</p>
+        </header>
+
+        <div id="auth-section">
+            <div id="login-section">
+                <h3>Login / Signup</h3>
+                <div class="form-container">
+                    <button id="google-signin" class="google-btn">Sign in with Google</button>
+                    <p>OR</p>
+                    <input type="email" id="email" placeholder="Enter your email" />
+                    <input type="password" id="password" placeholder="Enter your password" />
+                    <button id="signup-btn">Signup / Login</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="user-section" style="display:none;">
+            <section class="mining-info">
+                <div class="status-container">
+                    <p id="earnings-display">Earnings: 0 AMB</p>
+                    <p id="speed-display">Mining Speed: 1x</p>
+                    <p id="referrals-display">Referrals: 0</p>
+                </div>
+
+                <div class="controls">
+                    <button id="startMiningBtn">Start Mining</button>
+                    <button id="addReferralBtn">Add Referral</button>
+                </div>
+            </section>
+
+            <section class="user-info">
+                <h2>Referral System</h2>
+                <p>Invite your friends and increase your mining speed!</p>
+                <div class="referral-info">
+                    <p>Current Referrals: <span id="referral-count">0</span></p>
+                    <p>Bonus Mining Speed from Referrals: <span id="bonus-speed">0x</span></p>
+                </div>
+            </section>
+
+            <footer>
+                <p>&copy; 2025 AMB Coin Mining App. All rights reserved.</p>
+            </footer>
+        </div>
+    </div>
+</body>
+</html>
